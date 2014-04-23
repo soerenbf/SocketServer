@@ -140,8 +140,12 @@
     self.inputStream.delegate = self;
     self.outputStream.delegate = self;
     
+    [self.inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [self.outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    
     [self.inputStream open];
     [self.outputStream open];
+    
     return YES;
 }
 

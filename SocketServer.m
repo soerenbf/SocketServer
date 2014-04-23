@@ -16,6 +16,7 @@
 }
 
 @property (nonatomic, assign) socketType socketType;
+@property (nonatomic, strong) NSMutableArray *connections;
 
 //Callback for kCFSocketAcceptCallBack.
 static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef address, const void *data, void *info);
@@ -30,6 +31,16 @@ static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef
 @end
 
 @implementation SocketServer
+
+#pragma mark - Setters/getters
+
+- (NSMutableArray *)connections
+{
+    if (!_connections) {
+        _connections = [[NSMutableArray alloc] init];
+    }
+    return _connections;
+}
 
 #pragma mark - publically accessible functions
 
@@ -61,6 +72,11 @@ static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef
 
 - (void)terminate
 {
+    self.port = 0;
+    self.service = nil;
+    self.socketType = -1;
+    self.connections = nil;
+    
     if (self.socketType == POSIXSocket) {
         [self closeSocketPOSIX];
     } else {
@@ -191,17 +207,11 @@ static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef
 - (void)closeSocketPOSIX
 {
     //Set POSIX socket reference to NULL.
-    self.port = 0;
-    self.service = nil;
-    self.socketType = -1;
 }
 
 - (void)closeSocketCF
 {
     self.cfSocket = NULL;
-    self.port = 0;
-    self.service = nil;
-    self.socketType = -1;
 }
 
 - (void)unpublishService
@@ -224,7 +234,7 @@ static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef
     }
     
     // for an AcceptCallBack, the data parameter is a pointer to a CFSocketNativeHandle
-    CFSocketNativeHandle nativeSocketHandle = *(CFSocketNativeHandle*)data;
+    CFSocketNativeHandle nativeSocketHandle = *(CFSocketNativeHandle *)data;
     
     [server handleNewNativeSocket:nativeSocketHandle];
 }
@@ -244,6 +254,8 @@ static void handleConnect(CFSocketRef sock, CFSocketCallBackType type, CFDataRef
         [connection close];
         return;
     }
+    
+    [self.connections addObject:connection];
     
     // Pass this on to our delegate
     [self.delegate handleNewConnection:connection];
