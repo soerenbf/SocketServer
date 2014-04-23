@@ -218,7 +218,7 @@
         return;
     }
     //Fetch the data from the stream.
-    uint8 buf[1024];
+    uint8_t buf[1024];
     
     while (inputStream.hasBytesAvailable) {
         NSInteger bytesRead = [inputStream read:buf maxLength:sizeof(buf)];
